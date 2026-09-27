@@ -1,4 +1,3 @@
-%%writefile casino_protocol.py
 class CasinoProtocolEngine:
     def __init__(self, r_contract: float, r_ip: float):
         self.r_contract = r_contract
