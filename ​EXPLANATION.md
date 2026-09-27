@@ -13,12 +13,6 @@ c1=0.95, c2=0.90, c3=0.88, GV=0.05
 Systemic Verification Confidence (T): 0.9091
 Verification Uncertainty (C): 0.0909
 [STATUS] System Operational. R_protected = 301.00
-
----
-
-## CASE 2：搾取・虚偽検知モード（自律ブレーキと自動隔離）
-
-```text
 === CASE 2: Empirical Correspondence Anomaly (c2 = 0) ===
 --- Audit Telemetry ---
 c1=0.95, c2=0.00, c3=0.88, GV=0.85
