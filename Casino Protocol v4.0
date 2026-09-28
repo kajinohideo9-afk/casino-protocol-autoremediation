@@ -1,0 +1,175 @@
+import math
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict
+
+# =====================================================================
+# 1. 状態定義 (System States)
+# =====================================================================
+class SystemStatus(Enum):
+    NORMAL = "NORMAL"               # 正常運用
+    WARNING = "WARNING"             # 監視強化・是正勧告
+    ISOLATED_HOLD = "ISOLATED_HOLD" # 自動サーキットブレーカー・ボルト隔離
+
+# =====================================================================
+# 2. 権利保護不変量 (Layer 5: Invariant Protected Rights)
+# =====================================================================
+@dataclass
+class InvariantProtectedRights:
+    """
+    R_protected = R_contract + R_IP + R_audit
+    どのようなシステム状態（ISOLATED_HOLD含む）になっても切り離され常時保護される
+    """
+    r_contract: float  # 契約権価値
+    r_ip: float        # 知的財産権(IP)価値
+    r_audit: float     # 監査権価値
+
+    @property
+    def total_protected(self) -> float:
+        return self.r_contract + self.r_ip + self.r_audit
+
+# =====================================================================
+# 3. 幾何学数理モデル (Geometry & Asymmetry Mechanics)
+# =====================================================================
+class GeometryModel:
+    """
+    【y = x² と y² = x の相殺・調和メカニズム】
+    - y = x² : 初期の非対称性・ポテンシャルの傾き（電力搾取や情報の歪み）
+    - y² = x : 情報並列化速度・逆関数処理による歪みの相殺・平坦化
+    """
+    @staticmethod
+    def initial_asymmetry(x: float) -> float:
+        """初期の傾き・非対称ポテンシャル (y = x²)"""
+        return x ** 2
+
+    @staticmethod
+    def parallel_information_repair(y: float) -> float:
+        """情報並列化・逆関数による平坦化・相殺処理 (y² = x -> x = sqrt(y))"""
+        if y < 0:
+            return 0.0
+        return math.sqrt(y)
+
+    @staticmethod
+    def check_sphere_boundary(x: float, y: float, z: float, radius: float) -> bool:
+        """【球体モデル: x² + y² + z² = r²】完全調和・境界の成立検証"""
+        return math.isclose(x**2 + y**2 + z**2, radius**2, rel_tol=1e-5)
+
+# =====================================================================
+# 4. Casino プロトコル（3C³検証エンジン）
+# =====================================================================
+class CasinoProtocolV3:
+    """
+    Casino Protocol 3C³ Verification Engine
+    Layer 1: 評価ルール入力 (c1, c2, c3)
+    Layer 2: 3C³ 調和平均数理モデル
+    Layer 3: 検証信頼度 T の算出
+    Layer 4: 状態遷移 (Auto-Remediation)
+    Layer 5: 権利保護不変量の独立維持
+    """
+    def __init__(self, threshold_warning: float = 0.5, threshold_critical: float = 0.1):
+        self.threshold_warning = threshold_warning
+        self.threshold_critical = threshold_critical
+
+    def calculate_harmony_score(self, c1: float, c2: float, c3: float) -> float:
+        """
+        Layer 2 & 3: 3C³ 調和平均による T (検証信頼度) の導出
+        Formula: T = 3 / (1/c1 + 1/c2 + 1/c3)
+        c2 -> 0+ のとき T -> 0 (極限の数学的帰結)
+        """
+        # 境界値処理 (いずれかが0以下の場合は信頼度ゼロ)
+        if c1 <= 0.0 or c2 <= 0.0 or c3 <= 0.0:
+            return 0.0
+
+        # クランプ処理 (0 < c_i <= 1.0)
+        c1, c2, c3 = min(c1, 1.0), min(c2, 1.0), min(c3, 1.0)
+
+        # 調和平均計算
+        return 3.0 / ((1.0 / c1) + (1.0 / c2) + (1.0 / c3))
+
+    def evaluate_node(
+        self, 
+        c1: float, 
+        c2: float, 
+        c3: float, 
+        rights: InvariantProtectedRights,
+        initial_x_load: float = 0.0
+    ) -> Dict[str, object]:
+        """
+        全レイヤー統合評価・状態判定プロセス
+        """
+        # --- [初期歪みの計算: y = x²] ---
+        asymmetry_y = GeometryModel.initial_asymmetry(initial_x_load)
+        repaired_x = GeometryModel.parallel_information_repair(asymmetry_y)
+
+        # --- [Layer 2 & 3: 調和平均 T の導出] ---
+        t_score = self.calculate_harmony_score(c1, c2, c3)
+
+        # --- [Layer 4: 状態決定・自動サーキットブレーカー] ---
+        if t_score <= self.threshold_critical:
+            status = SystemStatus.ISOLATED_HOLD
+            action = "CIRCUIT_BREAKER_TRIGGERED: 取引回路自動遮断・ボルト隔離"
+        elif t_score < self.threshold_warning:
+            status = SystemStatus.WARNING
+            action = "WARNING: 状態監視強化・是正勧告"
+        else:
+            status = SystemStatus.NORMAL
+            action = "NORMAL: 正常運用継続"
+
+        # --- [Layer 5: 権利保護不変量の出力] ---
+        return {
+            "initial_mechanics": {
+                "x_load": initial_x_load,
+                "y_asymmetry_slope": asymmetry_y,
+                "x_repaired_parallel": repaired_x
+            },
+            "metrics": {"c1_consistency": c1, "c2_correspondence": c2, "c3_consensus": c3},
+            "trust_score_T": t_score,
+            "status": status.value,
+            "remediation_action": action,
+            "invariant_rights": {
+                "r_contract": rights.r_contract,
+                "r_ip": rights.r_ip,
+                "r_audit": rights.r_audit,
+                "r_protected_total": rights.total_protected,
+                "is_protected": True  # 隔離状態に関わらず常時完全保護
+            }
+        }
+
+# =====================================================================
+# 5. シミュレーション実行 (Demonstration)
+# =====================================================================
+if __name__ == "__main__":
+    protocol = CasinoProtocolV3()
+
+    # ユーザーの権利保護不変量 (Layer 5) の設定
+    user_rights = InvariantProtectedRights(
+        r_contract=1_000_000.0, # 契約権
+        r_ip=5_000_000.0,       # 知的財産権 (IP)
+        r_audit=500_000.0       # 監査権
+    )
+
+    print("=== Casino Protocol 3C³ 統合数理モデル シミュレーション ===\n")
+
+    # ケース 1: 正常状態
+    print("【ケース1: 正常運用】 (c1=0.9, c2=0.85, c3=0.95, x_load=2.0)")
+    res1 = protocol.evaluate_node(0.9, 0.85, 0.95, user_rights, initial_x_load=2.0)
+    print(f" 初期傾き (y=x²): {res1['initial_mechanics']['y_asymmetry_slope']}")
+    print(f" 信頼度 T: {res1['trust_score_T']:.4f} | ステータス: {res1['status']}")
+    print(f" アクション: {res1['remediation_action']}")
+    print(f" 権利保護残高: {res1['invariant_rights']['r_protected_total']:,.0f} 円 (保護状態: {res1['invariant_rights']['is_protected']})\n")
+
+    # ケース 2: c2 -> 0+ (地域未還元・電力搾取検出)
+    print("【ケース2: c2 -> 0+ (電力搾取・整合性急減)】 (c1=1.0, c2=0.01, c3=1.0, x_load=5.0)")
+    res2 = protocol.evaluate_node(1.0, 0.01, 1.0, user_rights, initial_x_load=5.0)
+    print(f" 初期傾き (y=x²): {res2['initial_mechanics']['y_asymmetry_slope']}")
+    print(f" 信頼度 T: {res2['trust_score_T']:.4f} | ステータス: {res2['status']}")
+    print(f" アクション: {res2['remediation_action']}")
+    print(f" 権利保護残高: {res2['invariant_rights']['r_protected_total']:,.0f} 円 (保護状態: {res2['invariant_rights']['is_protected']})\n")
+
+    # ケース 3: c2 = 0.0 (極限値 / 完全途絶)
+    print("【ケース3: c2 = 0.0 (無償搾取確定時・完全隔離)】 (c1=1.0, c2=0.0, c3=1.0, x_load=10.0)")
+    res3 = protocol.evaluate_node(1.0, 0.0, 1.0, user_rights, initial_x_load=10.0)
+    print(f" 初期傾き (y=x²): {res3['initial_mechanics']['y_asymmetry_slope']}")
+    print(f" 信頼度 T: {res3['trust_score_T']:.4f} | ステータス: {res3['status']}")
+    print(f" アクション: {res3['remediation_action']}")
+    print(f" 権利保護残高: {res3['invariant_rights']['r_protected_total']:,.0f} 円 (保護状態: {res3['invariant_rights']['is_protected']})")
