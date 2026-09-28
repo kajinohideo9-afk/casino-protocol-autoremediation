@@ -1,0 +1,14 @@
+=== Casino Protocol v5.0 Deterministic Simulation Logs ===
+
+【Scenario 1: Ideal】(c1=0.9, c2=0.85, c3=0.95, expected_r=3.0)
+ Trust Score T: 0.8981 | Status: NORMAL
+ Rights Invariant: 300,000,002.0 JPY
+
+【Scenario 2: Free-Riding】(c1=1.0, c2=0.01, c3=1.0, expected_r=3.0)
+ Trust Score T: 0.0294 | Status: ISOLATED_HOLD
+ Rights Invariant: 300,000,002.0 JPY (PRESERVED & ISOLATED)
+
+【Scenario 3: Geometric Mismatch】(c1=0.9, c2=0.85, c3=0.95, coords=(2.0, 2.0, 2.0) != r 3.0)
+ Distortion Detected: True
+ Adjusted c2: 0.0850
+ Trust Score T: 0.2154 | Status: WARNING
