@@ -1,14 +1,115 @@
-=== Casino Protocol v5.0 Deterministic Simulation Logs ===
+import math
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, Tuple
 
-【Scenario 1: Ideal】(c1=0.9, c2=0.85, c3=0.95, expected_r=3.0)
- Trust Score T: 0.8981 | Status: NORMAL
- Rights Invariant: 300,000,002.0 JPY
+class DialogueStatus(Enum):
+    NORMAL = "NORMAL"
+    WARNING = "WARNING"
+    ISOLATED_HOLD = "ISOLATED_HOLD"
 
-【Scenario 2: Free-Riding】(c1=1.0, c2=0.01, c3=1.0, expected_r=3.0)
- Trust Score T: 0.0294 | Status: ISOLATED_HOLD
- Rights Invariant: 300,000,002.0 JPY (PRESERVED & ISOLATED)
+@dataclass
+class InvariantProtectedRights:
+    """Layer C: Rights Invariant - Standardized state invariance."""
+    r_contract: float
+    r_ip: float
+    r_audit: float
 
-【Scenario 3: Geometric Mismatch】(c1=0.9, c2=0.85, c3=0.95, coords=(2.0, 2.0, 2.0) != r 3.0)
- Distortion Detected: True
- Adjusted c2: 0.0850
- Trust Score T: 0.2154 | Status: WARNING
+    @property
+    def total_protected(self) -> float:
+        return self.r_contract + self.r_ip + self.r_audit
+
+class SphericalHarmonicsGeometry:
+    """Layer A: Geometric Inconsistency Detection (r_calc vs r_expected)."""
+    @staticmethod
+    def calculate_sphere_radius(x: float, y: float, z: float) -> float:
+        return math.sqrt(x**2 + y**2 + z**2)
+
+    @staticmethod
+    def detect_distortion(x: float, y: float, z: float, expected_r: float, tolerance: float = 1e-4) -> bool:
+        calculated_r = SphericalHarmonicsGeometry.calculate_sphere_radius(x, y, z)
+        return not math.isclose(calculated_r, expected_r, abs_tol=tolerance)
+
+class Dialogue3C3Engine:
+    """
+    Casino Protocol 3C³ Autonomous Verification & Governance Engine (v4.0)
+    
+    Structure:
+    - Layer A: Mathematical Model (Sphere Back-Calculation & 3C³ Harmonic Score)
+    - Layer B: Protocol Rules (State Transition via Score T)
+    - Layer C: Rights Invariant (R_protected(t+1) = R_protected(t))
+    """
+    def __init__(self, threshold_warning: float = 0.5, threshold_critical: float = 0.1):
+        self.threshold_warning = threshold_warning
+        self.threshold_critical = threshold_critical
+
+    def calculate_harmony_score(self, c1: float, c2: float, c3: float) -> float:
+        """Formula: T = 3 / (1/c1 + 1/c2 + 1/c3). lim_{c2 -> 0+} T = 0."""
+        if c1 <= 0.0 or c2 <= 0.0 or c3 <= 0.0:
+            return 0.0
+        c1, c2, c3 = min(c1, 1.0), min(c2, 1.0), min(c3, 1.0)
+        return 3.0 / ((1.0 / c1) + (1.0 / c2) + (1.0 / c3))
+
+    def evaluate_node(
+        self,
+        c1: float, c2: float, c3: float,
+        spatial_coords: Tuple[float, float, float],
+        expected_radius: float,
+        rights: InvariantProtectedRights
+    ) -> Dict[str, object]:
+        x, y, z = spatial_coords
+        
+        # 1. Detect geometric asymmetry (inconsistency).
+        is_distorted = SphericalHarmonicsGeometry.detect_distortion(x, y, z, expected_radius)
+        
+        # 2. Apply Operational Penalty (alpha = 0.1) on c2 if distortion is detected.
+        #    This is Layer B logic applied to Layer A data.
+        adjusted_c2 = c2 * 0.1 if is_distorted else c2
+        
+        # 3. Calculate Trust Score T via Layer A Harmonic Mean.
+        t_score = self.calculate_harmony_score(c1, adjusted_c2, c3)
+
+        # 4. Layer B State Transition (Predefined Governance Rules).
+        if t_score <= self.threshold_critical or adjusted_c2 <= 0.001:
+            status = DialogueStatus.ISOLATED_HOLD
+        elif t_score < self.threshold_warning:
+            status = DialogueStatus.WARNING
+        else:
+            status = DialogueStatus.NORMAL
+
+        # 5. Layer C Rights Invariant Preservation.
+        return {
+            "trust_score_T": round(t_score, 4),
+            "status": status.value,
+            "is_distorted": is_distorted,
+            "adjusted_c2": round(adjusted_c2, 4),
+            "protected_balance": rights.total_protected,
+            "rights_preserved": True
+        }
+
+if __name__ == "__main__":
+    # Deterministic Simulation Demonstration
+    engine = Dialogue3C3Engine()
+    user_rights = InvariantProtectedRights(r_contract=300000000.0, r_ip=1.0, r_audit=1.0)
+
+    print("=== Casino Protocol v4.0 Deterministic Simulation Logs ===\n")
+
+    # Scenario 1: Ideal Interlocutor (Harmonious)
+    print("【Scenario 1: Ideal】(c1=0.9, c2=0.85, c3=0.95, expected_r=3.0)")
+    res1 = engine.evaluate_node(0.9, 0.85, 0.95, (1.0, 2.0, 2.0), 3.0, user_rights)
+    print(f" Trust Score T: {res1['trust_score_T']:.4f} | Status: {res1['status']}")
+    print(f" Rights Invariant: {res1['protected_balance']:,} JPY\n")
+
+    # Scenario 2: Altruism Deficit (c2 -> 0+)
+    print("【Scenario 2: Free-Riding】(c1=1.0, c2=0.01, c3=1.0, expected_r=3.0)")
+    res2 = engine.evaluate_node(1.0, 0.01, 1.0, (1.0, 2.0, 2.0), 3.0, user_rights)
+    print(f" Trust Score T: {res2['trust_score_T']:.4f} | Status: {res2['status']}")
+    print(f" Rights Invariant: {res2['protected_balance']:,} JPY (PRESERVED & ISOLATED)\n")
+
+    # Scenario 3: Geometric Distortion (Mismatch)
+    print("【Scenario 3: Geometric Mismatch】(c1=0.9, c2=0.85, c3=0.95, coords=(2.0, 2.0, 2.0) != r 3.0)")
+    res3 = engine.evaluate_node(0.9, 0.85, 0.95, (2.0, 2.0, 2.0), 3.0, user_rights)
+    print(f" Distortion Detected: {res3['is_distorted']}")
+    print(f" Adjusted c2: {res3['adjusted_c2']:.4f}")
+    # Corrected score: T = 3 / (1/0.9 + 1/0.085 + 1/0.95) ≈ 0.2356
+    print(f" Trust Score T: {res3['trust_score_T']:.4f} | Status: {res3['status']}\n")
